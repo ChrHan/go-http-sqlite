@@ -2,13 +2,23 @@ package main
 
 import (
 	"fmt"
+	dbutil "github.com/ChrHan/go-sqlite-utility/dbutil"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/vrischmann/envconfig"
 	"log"
 	"net/http"
 	"strconv"
-
-	dbutil "github.com/ChrHan/go-sqlite-utility/dbutil"
-	_ "github.com/mattn/go-sqlite3"
+	"syscall"
 )
+
+type config struct {
+	// Filename of SQLite3 database
+	Filename string `envconfig:"default=database.db"`
+
+	// LogLevel is a minimal log severity required for the message to be logged.
+	// Valid levels: [debug, info, warn, error, fatal, panic].
+	LogLevel string `envconfig:"default=info"`
+}
 
 type appContext struct {
 	val int
@@ -141,7 +151,14 @@ func (sa *ServiceA) DeleteAll(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	localCtx := &appContext{val: 42, db: dbutil.New("database.db")}
+	// -> config from env
+	cfg := &config{}
+	if err := envconfig.InitWithPrefix(&cfg, "APP"); err != nil {
+		log.Fatalf("init config: err=%s\n", err)
+		syscall.Exit(1)
+	}
+
+	localCtx := &appContext{val: 42, db: dbutil.New(cfg.Filename)}
 	a := &ServiceA{ctx: *localCtx, a: 28}
 	http.HandleFunc("/a/foo", a.Foo)
 	http.HandleFunc("/a/bar", a.Bar)

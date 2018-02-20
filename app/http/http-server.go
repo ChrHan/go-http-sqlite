@@ -21,31 +21,17 @@ type config struct {
 }
 
 type appContext struct {
-	val int
-	db  *dbutil.Dbutil
+	db *dbutil.Dbutil
 }
 
-// ServiceA serves as a sample HTTP Service
-type ServiceA struct {
+// DatabaseService serves as a sample HTTP Service
+type DatabaseService struct {
 	ctx appContext
-	a   int
-}
-
-// Foo returns sa.a
-func (sa *ServiceA) Foo(w http.ResponseWriter, req *http.Request) {
-	sa.a = 1
-	fmt.Fprintf(w, "sa is now %s", strconv.Itoa(sa.a))
-}
-
-// Bar returns sa.a
-func (sa *ServiceA) Bar(w http.ResponseWriter, req *http.Request) {
-	sa.a = 2
-	fmt.Fprintf(w, "sa is now %s", strconv.Itoa(sa.a))
 }
 
 // Select returns select result from SQLite3 Database
-func (sa *ServiceA) Select(w http.ResponseWriter, req *http.Request) {
-	result, err := sa.ctx.db.Select()
+func (ds *DatabaseService) Select(w http.ResponseWriter, req *http.Request) {
+	result, err := ds.ctx.db.Select()
 	if err != nil {
 		fmt.Println("Error found on select")
 		log.Print(err.Error())
@@ -59,19 +45,20 @@ func (sa *ServiceA) Select(w http.ResponseWriter, req *http.Request) {
 		var name string
 		err := result.Scan(&id, &name)
 		if err != nil {
-			log.Fatal(err.Error())
+			fmt.Println(err.Error())
+			log.Print(err.Error())
 		}
 		resultString += fmt.Sprintf("id: %s \nname: %s", strconv.Itoa(id), name)
 	}
 	err = result.Err()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 	}
 	fmt.Fprintf(w, resultString)
 }
 
 // Insert performs insert when called via HTTP using ?id={id}&product_name={product_name} as parameter
-func (sa *ServiceA) Insert(w http.ResponseWriter, req *http.Request) {
+func (ds *DatabaseService) Insert(w http.ResponseWriter, req *http.Request) {
 	ids, ok := req.URL.Query()["id"]
 	if !ok || len(ids) < 1 {
 		log.Println("Url Param 'id' is missing")
@@ -85,7 +72,7 @@ func (sa *ServiceA) Insert(w http.ResponseWriter, req *http.Request) {
 
 	id := ids[0]
 	productName := productNames[0]
-	err := sa.ctx.db.Insert(id, productName)
+	err := ds.ctx.db.Insert(id, productName)
 	if err != nil {
 		log.Print(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
@@ -97,7 +84,7 @@ func (sa *ServiceA) Insert(w http.ResponseWriter, req *http.Request) {
 }
 
 // Update performs update when called via HTTP using ?id={id}&product_name={product_name} as parameter
-func (sa *ServiceA) Update(w http.ResponseWriter, req *http.Request) {
+func (ds *DatabaseService) Update(w http.ResponseWriter, req *http.Request) {
 	ids, ok := req.URL.Query()["id"]
 	if !ok || len(ids) < 1 {
 		log.Println("Url Param 'id' is missing")
@@ -112,9 +99,9 @@ func (sa *ServiceA) Update(w http.ResponseWriter, req *http.Request) {
 	id := ids[0]
 	productName := productNames[0]
 
-	err := sa.ctx.db.Update(id, productName)
+	err := ds.ctx.db.Update(id, productName)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
 		return
 	}
@@ -122,7 +109,7 @@ func (sa *ServiceA) Update(w http.ResponseWriter, req *http.Request) {
 }
 
 // Delete performs delete when called via HTTP using ?id={id} as parameter
-func (sa *ServiceA) Delete(w http.ResponseWriter, req *http.Request) {
+func (ds *DatabaseService) Delete(w http.ResponseWriter, req *http.Request) {
 	ids, ok := req.URL.Query()["id"]
 	if !ok || len(ids) < 1 {
 		log.Println("Url Param 'id' is missing")
@@ -131,9 +118,9 @@ func (sa *ServiceA) Delete(w http.ResponseWriter, req *http.Request) {
 
 	id := ids[0]
 
-	err := sa.ctx.db.Delete(id)
+	err := ds.ctx.db.Delete(id)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
 		return
 	}
@@ -141,10 +128,10 @@ func (sa *ServiceA) Delete(w http.ResponseWriter, req *http.Request) {
 }
 
 // DeleteAll performs delete all records when called via HTTP
-func (sa *ServiceA) DeleteAll(w http.ResponseWriter, req *http.Request) {
-	err := sa.ctx.db.DeleteAll()
+func (ds *DatabaseService) DeleteAll(w http.ResponseWriter, req *http.Request) {
+	err := ds.ctx.db.DeleteAll()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
 		return
 	}
@@ -154,19 +141,18 @@ func main() {
 	// -> config from env
 	cfg := &config{}
 	if err := envconfig.InitWithPrefix(&cfg, "APP"); err != nil {
-		log.Fatalf("init config: err=%s\n", err)
+		log.Println("init config: err=%s\n", err)
 		syscall.Exit(1)
 	}
 
-	localCtx := &appContext{val: 42, db: dbutil.New(cfg.Filename)}
-	a := &ServiceA{ctx: *localCtx, a: 28}
-	http.HandleFunc("/a/foo", a.Foo)
-	http.HandleFunc("/a/bar", a.Bar)
-	http.HandleFunc("/select", a.Select)
-	http.HandleFunc("/insert", a.Insert)
-	http.HandleFunc("/update", a.Update)
-	http.HandleFunc("/deleteAll", a.DeleteAll)
-	http.HandleFunc("/delete", a.Delete)
+	localCtx := &appContext{db: dbutil.New(cfg.Filename)}
+	dbService := &DatabaseService{ctx: *localCtx}
+	http.HandleFunc("/select", dbService.Select)
+	http.HandleFunc("/insert", dbService.Insert)
+	http.HandleFunc("/update", dbService.Update)
+	http.HandleFunc("/deleteAll", dbService.DeleteAll)
+	http.HandleFunc("/delete", dbService.Delete)
+
 	fmt.Println("Server is starting....")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

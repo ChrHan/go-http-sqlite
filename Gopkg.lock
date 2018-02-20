@@ -27,6 +27,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/vrischmann/envconfig"
+  packages = ["."]
+  revision = "757beaaeac8d14bcc7ea3f71488d65cf45cf2eff"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
@@ -43,6 +49,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c28271e7f5451315f7ce7e534f455ff66017e3c21c0c51d9b17f88d909fbcff6"
+  inputs-digest = "d4354d72bc270e07b27d339b4c01f809c163f22119f890f2fc3788cce4846d72"
   solver-name = "gps-cdcl"
   solver-version = 1

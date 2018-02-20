@@ -3,13 +3,46 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/vrischmann/envconfig"
+  name = "github.com/ChrHan/go-sqlite-utility"
+  packages = ["dbutil"]
+  revision = "ed7d204559ecddb1396870cbeddc28bc2f212388"
+
+[[projects]]
+  name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "757beaaeac8d14bcc7ea3f71488d65cf45cf2eff"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
+
+[[projects]]
+  name = "github.com/mattn/go-sqlite3"
+  packages = ["."]
+  revision = "6c771bb9887719704b210e87e934f08be014bdb1"
+  version = "v1.6.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/prometheus/log"
+  packages = ["."]
+  revision = "9a3136781e1ff7bc42736ba4acb81339b1422551"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "432090b8f568c018896cd8a0fb0345872bbac6ce"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0ea1f19a4797aaaa9a89dc6f4cef137a7347a74c25feddee2dff8e7e27640a1c"
+  inputs-digest = "c28271e7f5451315f7ce7e534f455ff66017e3c21c0c51d9b17f88d909fbcff6"
   solver-name = "gps-cdcl"
   solver-version = 1

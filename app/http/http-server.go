@@ -38,7 +38,7 @@ func (sa *ServiceA) Select(w http.ResponseWriter, req *http.Request) {
 	result, err := sa.ctx.db.Select()
 	if err != nil {
 		fmt.Println("Error found on select")
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
 		return
 	}
@@ -75,11 +75,11 @@ func (sa *ServiceA) Insert(w http.ResponseWriter, req *http.Request) {
 
 	id := ids[0]
 	productName := productNames[0]
-
 	err := sa.ctx.db.Insert(id, productName)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Print(err.Error())
 		w.WriteHeader(http.StatusInternalServerError) // Proper HTTP response
+		fmt.Fprintf(w, id+" "+productName+" is not inserted; duplicate ID found")
 		return
 	}
 
@@ -150,5 +150,6 @@ func main() {
 	http.HandleFunc("/update", a.Update)
 	http.HandleFunc("/deleteAll", a.DeleteAll)
 	http.HandleFunc("/delete", a.Delete)
+	fmt.Println("Server is starting....")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
